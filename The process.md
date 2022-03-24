@@ -52,7 +52,7 @@ The OS's next task is to start the program running at its entry point (main()); 
 
 At the discretion of the OS; when a process moves from a ready to a running state its referred to as **scheduled** and when from a running to a ready state its referred to as **descheduled**
 
-**Image over here**
+![Tracing process state](https://github.com/Eden-Alem/Operating-Systems/blob/master/picc.jpg)
 
 **Datas Structures**
 
