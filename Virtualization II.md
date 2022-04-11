@@ -56,6 +56,135 @@ To run the first user program, the OS uses the instruction **ret-from-trap** (as
         - **Context switch**: inside kernel we switch from one stack to another in the context of a different process.
 
 
+**OS**: Must track different user processes in the system.
+- **Process list** (main a certain data structure of the processes; useful for our policies) 
+- Per-process information: PID (process identifier), files it has open
+      - **"State"** (of the process): READY, RUNNING, BLOCKED (on I/O)
+
+
+### Problem #3: Slow Operations (like I/O)
+**CPU**: processes billions of operations per second
+
+**Harddrive**: processes thousands of operations per second (The reason why SSDs came into play; they process hundreds of thousands of operations per second)
+
+-----------------------------------------------------------------------------
+      
+      "B"                                       ---------------------->
+                                                |
+      "A"---------                              | ret-from-trap
+                  | trap (sys. call)            | 
+       OS         ------ -----------------------
+                        | issues I/O
+                        | to disk
+       disk             ------------------------> (SLOW)
+
+------------------------------------------------------------------------------
+
+Allows better utilization of the CPU (overlap, in a concurrent system)
+
+=> **Remark:** There are times in which waiting and not doing something makes the system more efficient, when is it? (wait causing you to do less work and is more efficient). Will look into it in future notes :)
+
+Side note: Back in the old days OS support was also termed as "Master Control Program"
+
+**States**
+
+-------------------------------------------------------------------------------------------------------------
+
+                             ------------------------ RUNNING <-------------
+                             | (Issued                      |              | (Scheduled)
+                             |  I/O)          (descheduled) |              |
+               BLOCKED <------                              -------------> READY <---------
+                    |                                                                     |
+                    -----------------------------------------------------------------------
+                                                (I/O done)
+                                                
+--------------------------------------------------------------------------------------------------------------
+
+**Zombie state**: When a process is dead but not yet cleaned up.
+
+OS: tracks all these things with the goal of **efficieny** in mind.
+
+**Summary**:  General protocol - Limited Direct Execution; core of Oses, sandbox environment created for user processes.
+
+## Mechanisms -> Policies
+OS: Policy - **The what?** (What do we have to know to make the decision of running which process intelligently? (like run A or B))
+
+The Mechanism - **How?**
+
+**Assumptions**: (each process can also be termed as **Job**).......some of these are for sure unrealistic (for the sake of simplicity)
+- Set of jobs; all arrive into the system (created) at the same time
+- Each job only uses CPU (not worried about I/O for now)
+- Each job runs for the same amount of time (Ti is the same for all processes); known ahead of time
+- **Metric** (quantitative measure): turnaround time (time job ended(completed) - time arrived in the system)
+- Zero cost of context switching mechanism (there was an additional implicit cost to this - hardware is fast at doing the same things over and over but by switching back and forth its going to be slower at first then will gradually get faster) 
+
+**Side note**: Paranoid mindset - "Think like an adversary to build a rhobust system"
+
+As an example for taking our above listed assumptions into consideration; let's take processes A,B,C in which all arrive at t=0 and with a runtime of 100 time units
+
+For scheduling them:
+- **Algorithms**: FIFO (First In First Out), one of the basic algorithms
+      - Let's consider alphabetical order since they all arrived at the same time (A, then B, then C) - first, run to completion
+
+--------------------------------------------------------------------
+
+      "A" ------------- "B" ------------- "C" ------------- 
+      |0                |100              |200             |300
+
+--------------------------------------------------------------------
+
+Turnaround time (time job ended(completed) - time arrived in the system; T)
+
+TA = 100 - 0 = 100
+
+TB = 200 - 0 = 200
+
+TC = 300 -0 = 300
+
+Tavg = (300 + 200 + 100)/3 = 200
+
+**Remark**: It's very hard to know anything about a program's runtime. We'll see in future notes how this is handled by the OS :)
+
+Now let's relax some of our assumptions listed above and build something realistic:
+
+**Relax**: (All jobs have the same runtime) X
+
+A: 100, B: 10, C: 10
+
+----------------------------------------------------------------------------------------------
+
+      "A" ---------------------------------------- "B" ------------- "C" ------------- 
+      |0                                            |100              |110            |120
+
+-----------------------------------------------------------------------------------------------
+
+Tavg = 110; FIFO performs poorly here let's rather consider processing the processes with smaller runtimes first
+
+-------------------------------------------------------------------------------------------------
+
+      "B" ------------- "C" ------------- "A" ---------------------------------------- 
+      |0                |10               |20                                         |120
+
+-------------------------------------------------------------------------------------------------
+
+Tavg = 50; much more responsive (quicker system)
+
+**Goal**: Schedule Shortest Job First (SJF) - given the assumptions that all processes arrived at the same time; it gives the lowest average turnaround time.
+
+**Relax**: (All arrive at the same time) X
+
+-----------------------------------------------------------------------------------------------------
+
+      | (A arrived)                                  (short run-time)               
+      "A" ---------------------------------------- "B" -------------        (Not that responsive)    
+      |0        |             (waits)               |100            |110            
+                | (B arrived)
+
+------------------------------------------------------------------------------------------------------
+
+Generalization: taking into account that jobs arrive at different times; Shortest Time to Completion First (STCF)
+- Compare what time is left to the time of the new job that has just arrived
+- New thing we're doing here: Preempt job
 
 
 
@@ -64,7 +193,9 @@ To run the first user program, the OS uses the instruction **ret-from-trap** (as
 
 
 
-          
-          
+
+
+
+
           
           
