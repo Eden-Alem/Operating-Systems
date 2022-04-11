@@ -43,10 +43,14 @@ Lets consider this **Protocol - Direct Execution (not the limited version)**:
 
 From a timeline perspective:
 
-OS - running
-            | jumped
-            "A" - running -------
-            
+------------------------------------------
+
+      OS - running
+                  | jumped
+                  "A" - running -------
+                  
+------------------------------------------
+
 Problems with this: 
 
 - "A", the user process what if it wants to do something that is restricted? (like accessing a disk, creating a process itself, acquiring more memory for itself)
@@ -87,10 +91,13 @@ Two instructions that come in pair are used for the switching of modes
     - makes sure to save enough register state so that we can return properly (not to lose track of the state of the process when we switch to kernel mode)
 - **return from trap**
 
-"A" - running              ---------------------- running   (User Mode)
-             | trap        | return from trap
-             OS running ---                                 (Kernel Mode)
+--------------------------------------------------------------------------------
 
+      "A" - running              ---------------------- running   (User Mode)
+                   | trap        | return from trap
+                   OS running ---                                 (Kernel Mode)
+                   
+--------------------------------------------------------------------------------
 
 Traps offered by the OS are sometimes called **system calls** (set of services provided by the OS to user programs like opening a file, asking for more memory, create another process)
 
@@ -104,9 +111,13 @@ How does the OS restrict where to jump to?
 We need to save (often done by the hardware) and restore the **register state** of the process.
 
 ### How does the OS regain control?
-OS - running
-            | 
-            "A" - running -------
+-------------------------------------------
+
+      OS - running
+                  | 
+                  "A" - running -------
+                  
+-------------------------------------------
 
 But the OS isn't running on the CPU anymore; programs that don't run can't make decisions.
 
@@ -122,10 +133,13 @@ At boot time:
 - installs trap handlers
 - starts the interrupt timer: after a few milliseconds its going to interrupt the CPU between some instructions
       
-OS - running                   OS: timer interrupt handler
-            |                 |
-            "A" - running -----
+-------------------------------------------------------------------
 
+      OS - running                   OS: timer interrupt handler
+                  |                 |
+                  "A" - running -----
+                  
+-------------------------------------------------------------------
 
 
 **Side note**:
