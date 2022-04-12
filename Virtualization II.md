@@ -184,8 +184,22 @@ Tavg = 50; much more responsive (quicker system)
 
 Generalization: taking into account that jobs arrive at different times; Shortest Time to Completion First (STCF)
 - Compare what time is left to the time of the new job that has just arrived
-- New thing we're doing here: Preempt job
+- New thing we're doing here: **Preempt** job (in some cases, we're stopping an existing process and starting a new one)
 
+**Introduction of a new metric (response time)** 
+
+Some define this metric as the time until a process generates a "response" of some kind.
+
+And we define this metric as how much the time the process takes before it starts running (time first runs - time arrives)
+
+**Policy to minimize response time?**
+- Round Robin Scheduling
+      - length of time is called quantum/time slice (multiple of our timer interrupt period)
+      - Trade off:
+            - shorter time slices: better response time but high context switching overheads
+            - longer time slices: worse response time but more efficient
+
+**Idea so far:** We want to do SJF (STCF) but we don't know job lengths, and we also like to take response time into consideration (not just turnaround time). How to build a real scheduler that takes into account all these things? :)
 
 
 
