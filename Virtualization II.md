@@ -206,11 +206,16 @@ And we define this metric as how much the time the process takes before it start
 
 
 
+**Policies:** Deciding inside the OS Scheduler; at a given moment which process should run?
 
+-> Shortest Job First (SJF): The problem here is that  it assumes the knowledge of run time (we don't know how long processes will run for)-there are some environments where that this might not be true
 
+-> Round Robin: Was frequently switching between jobs. This relatively is responsive (for interactive jobs). The problem here is that it stretches all the processes time.
 
+### Develop a real scheduler policy: Classic Unix Scheduler
+**OS Scheduling Policy - Multi-level Feedback Queue(MLFQ):** 
 
-
-
+**Problem:** Don't know very much about the running processes (jobs)
           
+Like to learn: which are short jobs, longer running jobs? How?
           
