@@ -202,6 +202,7 @@ And we define this metric as how much the time the process takes before it start
 **Idea so far:** We want to do SJF (STCF) but we don't know job lengths, and we also like to take response time into consideration (not just turnaround time). How to build a real scheduler that takes into account all these things? :)
 
 
+**Side note:** Qemu (the emulator) is a program that boots like a real x86 system and emulates it in software which makes it basially slow.
 
 
 
