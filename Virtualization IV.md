@@ -73,18 +73,21 @@ Example: Smalll "toy" virtual address space; page size: 8 bytes; VAS size: 32 by
               Numbers(VPNs)
                        0 [ 0 | 1 | 2 |      ] - 8bytes
                        1 [  |  |  |......|  ] - let's say we're interested in the virtual address 01101, 13 (valid one, resides in VPN-1)
-                       2 [                  ] - not in use
+                       2 [                  ] - not in use - exception/fault when trying to access
                        3 [  |  |  |......|  ]
                         Virtual address space 
                           (VAS) with 4 pages
                           
               Page Table: Array (Linear)
                   (one entry per VPN)
-             
-               [                  ]         index by VPN
+                  
+          info that indicates whether its okay to access that part of the address space  
+                  |
+                valid  |  PFN
+               [  1        1      ]         index by VPN
            --->[(translation info)] - page table entry(PTE)
-          |    [                  ]           |
-          |    [                  ]           |
+          |    [  0               ]->invalid  |
+          |    [  1        4      ]           |
           |                                   | inside of this entry resides the physical frame number
           |                                   |
           |   VA: [  |  |  |  |  ]            |
@@ -98,6 +101,73 @@ Example: Smalll "toy" virtual address space; page size: 8 bytes; VAS size: 32 by
             VPN  01 | 101  (VA:13)
                  |(translated through the page table); take the VPN and index it into an array(VPN is not stored on the page table its just an index telling us which entry we're interested in and get the PFN)
             PFN 101 | 101  - physical address(PA); 45
+
+
+
+##### How does translation occur?
+- Limited(security) Direct Execution(hardware for efficiency) model
+
+- Considering the page table, the hardware does most of the work 
+
+              Physical Memory
+           0 [    //////     ] - OS uses this, for the page table of P0
+           1 [///////////////]
+           2 [               ]
+           3 [               ]
+           4 [///////////////]
+           5 [///////////////]
+           6 [               ]
+           7 [               ]
+                                   
+      While P0 is running the hardware needs to know a couple of information inorder to be able to do the translations and not have the OS involved. What does the hardware need to know?   
+      - Location of the page table
+      - Details of the system (like page size)
+      - Structure of page table entry (In x86 as an example, every structure is defined by the architecture/hardware)
+
+      Location of the page table: means there exists a per CPU register that holds the physical address of the page table of the currently running process, its called the Page Table Base Register (PTBR)
+      
+       Page table    -> in memory at address 4 (physical address)
+       [ 1     1 ]    
+       [ 1     5 ]    - Total of 4 bytes of size for the page table
+       [ 0     - ]
+       [ 1     4 ]
+       -----------
+         1 byte (size of a page table entry)
+       
+       Set PTBR to 4 (value changes upon context switching)
+       
+       When given a VA which we need to translate
+       1. We need to figure out the physical address of the desired page table entry
+               VA: 11 | 010   ->     PA: PTBR + (VPN * PTE)
+                  VPN-3       ->          4   +  3   *  1  =  7
+          
+       2. Load the page table entry (PTE), goes to memory which is slow
+       3. Do the translation by referring to the page table entry (VPN -> PFN)
+                    11 | 010
+                   100 | 010 - PA
+       4. Load the byte of information (data)   
+
+       Problems:        
+        - we're paying an extra memory reference everytime (2, 4) which makes it really slow
+        - Page tables are too big (million entries)
+           32-bit VAS, 4KB page ~ million entries;
+           if each entry is 4 bytes ~ 4MB page table
+           if running thousand processes ~ 4GB of memory being used for page tables (huge amount of space)
+
+       Side Note: Processors flip bits quickly (was figured out too quickly by the people who were building hardware using transistors that it flipped unimaginably too quickly) but going to memory takes a lot of time (perhaps hundreds of times longer)
+
+
+- PTBR details:
+  - privileged to update (restricted; not all can update)
+  - Process table: per process information we're tracking like state, registers and PTBR (save/restore); the OS must do these as a data structure per process where its going to save the PTBR when it switches away from the process and then restore it on to the CPU of the running process
+
+
+
+
+
+
+
+
 
 
 
