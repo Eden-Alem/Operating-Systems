@@ -19,11 +19,11 @@ Virtualization is an **illusion**: Each running program thinks it has its own CP
 
 - The process's memory (private): "address space" - in there resides code, stack, heap and static variables
 - **Registers**: 
-      - are changing constantly when a program is running
-      - **PC / Program Counter**, **SP / Stack Pointer**, **GP / General Purpose Resgisters** - like eax, space for programs to perform their computations
-      - basically used for performance (on the hardware, the processor should access data that is used for computation and compute on it very fast and comparing to register access memory access is very slow)
-      - explicit form of caching - bring values in for the processor to work on it, since going to the memory would make it slow
-      - only one set of these registers - are shared among processes by switching back and forth while being careful with their contents
+  - are changing constantly when a program is running
+  - **PC / Program Counter**, **SP / Stack Pointer**, **GP / General Purpose Resgisters** - like eax, space for programs to perform their computations
+    - basically used for performance (on the hardware, the processor should access data that is used for computation and compute on it very fast and comparing to register access memory access is very slow)
+    - explicit form of caching - bring values in for the processor to work on it, since going to the memory would make it slow
+    - only one set of these registers - are shared among processes by switching back and forth while being careful with their contents
 - I/O State: opened files relevant to the running program
 
 At the low level there are **Mechanisms** (how things work at a fundamental level; as an example for building an OS that uses time sharing for multi-programming, we need mechanisms for switching the processes(OS Scheduler)). On top of these are **Policies** - an algorithm for deciding how to best utilize the resources given the processes.
@@ -54,12 +54,12 @@ From a timeline perspective:
 Problems with this: 
 
 - "A", the user process what if it wants to do something that is restricted? (like accessing a disk, creating a process itself, acquiring more memory for itself)
-    - Problematic: You can read read everything on the disk, memory; where the secrecy of the machine is no longer maintained; would lose control of the machine
-    - How to allow processes to do restricted things but control it?
+  - Problematic: You can read read everything on the disk, memory; where the secrecy of the machine is no longer maintained; would lose control of the machine
+  - How to allow processes to do restricted things but control it?
 - What if the OS wants to stop "A" and run another process lets say "B" 
-    - When the process "A" is running, the OS is not running so how is the OS going to make a decision?
+  - When the process "A" is running, the OS is not running so how is the OS going to make a decision?
 - How does the OS regain control of the CPU? 
-    -  What if "A" does something that is slow (like disk I/O)?
+  -  What if "A" does something that is slow (like disk I/O)?
 
 
 ### To allow user processes to do restriced things but control it
@@ -71,7 +71,9 @@ Requires machinery from the hardware and interaction with the OS
 - Tells what kind of program is executing on the CPU at that time
 - OS - "Kernel mode", the OS can do anything
 - User Program - "User mode", can only perform a limited number of things, the hardware is going to prevent the program from doing certain types of things while in this mode. So, we have this bit in the hardware, indicating the mode of the running program. 
+
 How to get into these modes?
+
 How to transition?
     
     
@@ -79,16 +81,16 @@ To do these we're going to do something at **boot time**:
 
 - logically, when the system starts up we're going to **boot in kernel mode** **(If some malicious code is injected on the OS or the OS is replaced by some other binary similar to the OS, its going to have full control over the machine thus making it problematic since its running in kernel mode)**
 - When we want to run a user program:
-      - We need **special instructions** that both **1,** transitions into user mode **2,** jumps to some particular location in the user program
+  - We need **special instructions** that both **1,** transitions into user mode **2,** jumps to some particular location in the user program
 - When the user program wants to do something restricted (like disk I/O): we're going to change from user mode -> kernel mode and change to protected mode
-      - **1,** transitioning to kernel mode **2,** jumps into kernel (but is a restricted jump) - we don't want to allow a user program to jump to an arbitrary location while in this mode
+  - **1,** transitioning to kernel mode **2,** jumps into kernel (but is a restricted jump) - we don't want to allow a user program to jump to an arbitrary location while in this mode
 
 Two instructions that come in pair are used for the switching of modes
 
 - **trap**
-    - Powerful, system support provided by the hardware to allow us to build OS like features
-    - allows us to make a restricted jump into kernel and to elevate "privilege" (user -> kernel)
-    - makes sure to save enough register state so that we can return properly (not to lose track of the state of the process when we switch to kernel mode)
+  - Powerful, system support provided by the hardware to allow us to build OS like features
+  - allows us to make a restricted jump into kernel and to elevate "privilege" (user -> kernel)
+  - makes sure to save enough register state so that we can return properly (not to lose track of the state of the process when we switch to kernel mode)
 - **return from trap**
 
 --------------------------------------------------------------------------------
@@ -104,9 +106,9 @@ Traps offered by the OS are sometimes called **system calls** (set of services p
 How does the OS restrict where to jump to?
 
 - Happens at **boot time**:
-      - OS starts up in kernel mode
-      - Tells the hardware where to jump to when someone issues a particular kind of trap (which is usually done by specifying the trap number)
-      - In the OS, set up **trap handlers** (issuing another special instruction: tell the hardware where the trap handlers reside in the OS memory)
+  - OS starts up in kernel mode
+  - Tells the hardware where to jump to when someone issues a particular kind of trap (which is usually done by specifying the trap number)
+  - In the OS, set up **trap handlers** (issuing another special instruction: tell the hardware where the trap handlers reside in the OS memory)
 
 We need to save (often done by the hardware) and restore the **register state** of the process.
 
@@ -147,5 +149,5 @@ At boot time:
 - **Traps**: explicit instruction that happens (like trapping into the OS)
 - **Interrupts**: externral events that happen between instructions
 
-In X86 the trap instruction is called int - for interrupt (now thats confusing)
+In X86 the trap instruction is called int - for interrupt (now thats confusing :()
 
