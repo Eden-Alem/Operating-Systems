@@ -74,9 +74,58 @@ All of the above proposed solutions are just *data structures*; for building a m
 - We're going to add one level more of a tree and name it the **page directory**
 - Our page directory will have an entry for each page of the page table; will have an entry named page directory entry(PDE)
 
-      Page Directory Entry (PDE)
-      [Valid bit |     PFN      ]
-            
-    
-    
-    
+      The page table below is divided into pages and each page is composed of a bunch of PTEs 
+      
+      Our page directory is then going to have an entry (a mapping) of each page of the page table
+      
+      The first and last page of the page table has PTEs some of which are valid, and the middle pages are all non valid (which we want to remove for our space efficient representation on the physical memory)
+      
+      The non-valid pages need not be represented in physical memory
+      
+      
+         Page Table (Linear)
+           Valid 
+            bit
+          [  1             ] - PTE |         (Multi-level Version)
+          [  1             ] 0     |-Page   One level more of a tree:
+          [  0             ]       |            Page Directory    
+       ------------------------ | 
+          [  0             ] 1  |-Page      [ 1 |/////////////] 0
+          [  0             ]    |           [ 0 |             ] 1
+       ------------------------ |           [ 0 |             ] 2
+          [  0             ] 2              [ 0 |             ] 3
+          [  0             ]                [ 0 |             ] 4
+       ------------------------             [ 0 |             ] 5
+          [  0             ] 3              [ 0 |             ] 6
+          [  0             ]                [ 1 |/////////////] 7
+       ------------------------               |
+          [  0             ] 4           Page Directory  
+          [  0             ]               Entry(PDE)
+          [  0             ]  
+       ------------------------           Each PDE constitutes
+          [  0             ] 5        [ Valid bit |       PFN       ]
+          [  0             ]                |              |            
+       ------------------------    notifies if there is    |  
+          [  0             ] 6   a valid PTE on this page  |
+          [  0             ]        of the page table      |
+       ------------------------                            |
+          [  0             ] 7                  where the page of the
+          [  0             ]                 page table resides on the
+          [  1             ]                      physical memory
+
+
+      Multi-level page table assumes that you generally have a very sparse address space which is not always the case; the downside of this solution
+
+Multi-level page table even makes physical memory management easier for the OS than linear page tables? Why is that the case? (Side note to consider: Is this a faster lookup of our translation or a slower? It's slower)
+
+- Multi-level page table is slower but smaller (tradeoff: space vs time) but cause we use hardware (TLB) the translation is not that bad. 
+- We have to allocate contiguous space for the whole page table while using linear page table and inorder to do that it should be available to us. How do we find translation with a linear page table? We have the PTBR(page table base register) identifies where it begins (its hard to find a contiguous big chunk for allocating these page tables).
+- In multi-level even the page table has been divided into pages (so when we need to allocate an address space we do so for the page directory and then as pages get allocated for code and stack we allocate a few more pages for those pieces of the page table). 
+- Its easier to find space when its divided to pages than it is to find space for one large contiguous array.
+
+
+
+
+
+
+ 
