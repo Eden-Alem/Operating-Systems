@@ -48,6 +48,58 @@
   
 **Side Note:** Threads + Trust Model - Threads within the same process trust each other           
           
+   
+Sometimes when an OS exits(crashes) it results in a segfault; its called the **Kernel Panic**
           
-          
-          
+Posix Thread Library (posix standard): is the generic compatibility layer created across different forms of UNIX
+
+A thread enables multiple instantiation of function calls at the same time (executing on their own stacks)
+
+The independent stack of threads get created at run-time(during execution); when each time we create a new thread (with pthread_create in C) a new stack is created in the same virtual address space of the process (of the already running thread) and attached to the newly created thread for the duration of its existence.
+
+        Lets consider an example illustrating race condition
+        
+        Critical Section: Named by Dijkstra for instructions in which if two or more threads enter this section at the same time could result in a problem
+        The resulting outcome though if two or more threads enter this section is that a data race occurs and the outcome is indeterminate
+        
+        Let's consider the following three instructions in assembly language form (of x86 64bit) where balance is referring to the same memory address (known as instruction relative addressing) and is a global variable (meaning its shared)
+        
+        // Critical Section
+        1: movl     balance, %eax
+        2: addl     $1, %eax          balance = balance + 1
+        3: movl     %eax, balance
+        
+        
+         Thread1       Thread2       
+         pc  eax       pc  eax      balance (in memory, shared)
+         1  1000                    1000
+         2  1001                    1000
+         3  1001                    1001
+                       1  1001      1001
+                       2  1002      1001
+                       3  1002      1002
+                       
+         The above works as expected (SUCCESS) :D
+         
+         
+         Problem: arbitrary interleaving of threads   
+         
+         Thread1       Thread2       
+         pc  eax       pc  eax      balance (in memory, shared)
+         1  1000                    1000
+                       1  1000      1000
+                       2  1001      1000
+                       3  1001      1001
+         2  1001                    1001
+         3  1001                    1001  // redundant store of 1001
+         
+         In the above case (could happen when an interrupt/external event occurs), an update is lost :(
+         
+         
+         How do we solve this?
+         Using locks; (in C pthread_mutex_locks) on the shared variable (in this case balance) before updating the variable (executing balance = balance + 1) we lock the variable and then unlock it; in which this guarantees that only one thread is in critical section at a time.
+
+
+
+
+
