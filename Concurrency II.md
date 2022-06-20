@@ -47,7 +47,14 @@ In x86, **Atomic Exchange** in hardware; works in a way where its given the addr
 
 An instruction named **fetch and add** is a powerful atomic instruction (included in some architectures) where it remembers the old address value increments the address value by 1 and returns the old value it remembered(stored) prior the incrementation of the address (single indivisible instruction).
 
-So far, we've been using hardware primitives as xchg, fetch_and_add and so should there be OS support? The scheduler might want to know whether a process is spinning endlessly: yield() system call - takes a running thread calls yield which changes the state of a thread from RUNNING => RUNNABLE (then gives up the CPU)
+- So far, we've been using hardware primitives as xchg, fetch_and_add and so should there be OS support? The scheduler might want to know whether a process is spinning endlessly; OS primitives:
+  - Yield() system call - takes a running thread calls yield which changes the state of a thread from RUNNING => RUNNABLE (then gives up the CPU). Assuming 100 threads, the waiting time after the running thread is interrupted would be 100 * cost of context switch (much less than a time slice). 
+  - Solaris (early multi-threaded UNIX OS): had an OS primitive to help build locks named **park()**(like yield but rather => BLOCKED not RUNNABLE) **unpark()**(takes a thread_id and makes thread_id RUNNABLE) 
+
+
+
+
+
 
 
 
