@@ -54,7 +54,7 @@ An instruction named **fetch and add** is a powerful atomic instruction (include
 
 **Race of control(how code is executing)**
 
-    fork-join problem:
+    Fork/Join Problem:
     
     volatile int done = 0;
     
@@ -89,7 +89,7 @@ If we consider the condition variable as an abstract class it has two methods
 Usually, a CV is paired with some kind of a state variable (eg; integer, which indicates the state of the system).
 
 
-    fork-join problem(in another way):
+    Fork/Join Problem(in another way); waiting problem - a main thread waiting for all the worker threads to finish their work (common design pattern of concurrent programs):
     
     pthread_cond_t c = PTHREAD_COND_INITIALIZER;
     pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
@@ -121,6 +121,11 @@ Usually, a CV is paired with some kind of a state variable (eg; integer, which i
       printf("parent: end\n");
       return 0;
     }
+    
+    
+    If we didn't use locks; let's consider the case where parent gets interrupted before calling cond_wait and the child does its work and does cond_signal (if there is no one waiting it'll just return ineffectively) and then the parent runs again in which it runs cond_wait instruction and enters BLOCKED state (waits) forever.
+    
+    
 
 
 
