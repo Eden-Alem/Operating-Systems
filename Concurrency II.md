@@ -52,6 +52,75 @@ An instruction named **fetch and add** is a powerful atomic instruction (include
   - Solaris (early multi-threaded UNIX OS): had an OS primitive to help build locks named **park()**(like yield but rather => BLOCKED not RUNNABLE) **unpark()**(takes a thread_id and makes thread_id RUNNABLE) 
 
 
+**Race of control(how code is executing)**
+
+    fork-join problem:
+    
+    volatile int done = 0;
+    
+    void *child(void *arg) {
+      printf("child\n");
+      
+      // something here to signal all done
+      done = 1;
+      
+      return NULL;
+    }
+    
+    int main(int argc, char *argv[]) {
+      pthread_t p;
+      Pthread_create(&p, NULL, child, NULL);
+      
+      // something here to wait for the child
+      while (done == 0); // spin (inefficient; wastes CPU - uses it just spinning, shares the CPU 50-50 with the child eventhough its doing nothing)
+      
+      printf("parent: end\n");
+      return 0;
+    }
+    
+We want the parent to go to sleep (not using the CPU) and when the child is done to wake it up; for this we will use another primitive called the condition variable(CV).
+    
+A condition variable is a queue of waiting threads.
+   
+If we consider the condition variable as an abstract class it has two methods
+- **wait:** puts the caller to sleep and releases the lock (atomically), assumes the lock is held when wait() is called, when its awoken it reacquires the lock before returning.
+- **signal:** wakes a single waiting thread, if there is none waiting it returns without doing anything.
+  
+Usually, a CV is paired with some kind of a state variable (eg; integer, which indicates the state of the system).
+
+
+    fork-join problem(in another way):
+    
+    pthread_cond_t c = PTHREAD_COND_INITIALIZER;
+    pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
+    volatile int done = 0;
+    
+    void *child(void *arg) {
+      printf("child\n");
+      
+      // something here to signal all done
+      Mutex_lock(&m);
+      done = 1;
+      Cond_signal(&c);
+      Mutex_unlock(&m);
+      
+      return NULL;
+    }
+    
+    int main(int argc, char *argv[]) {
+      pthread_t p;
+      Pthread_create(&p, NULL, child, NULL);
+      
+      // something here to wait for the child
+      Mutex_lock(&m);
+      while (done == 0) {
+        Cond_wait(&c, &m); // release lock when going to sleep
+      }
+      Mutex_unlock(&m);
+      
+      printf("parent: end\n");
+      return 0;
+    }
 
 
 
