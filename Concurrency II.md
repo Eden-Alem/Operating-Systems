@@ -100,7 +100,7 @@ Usually, a CV is paired with some kind of a state variable (eg; integer, which i
       
       // something here to signal all done
       Mutex_lock(&m);
-      done = 1;
+      done = 1;   // Code b/n lock and unlock should be considered atomic
       Cond_signal(&c);
       Mutex_unlock(&m);
       
@@ -126,6 +126,27 @@ Usually, a CV is paired with some kind of a state variable (eg; integer, which i
     If we didn't use locks; let's consider the case where parent gets interrupted before calling cond_wait and the child does its work and does cond_signal (if there is no one waiting it'll just return ineffectively) and then the parent runs again in which it runs cond_wait instruction and enters BLOCKED state (waits) forever.
     
     
+##### Bounded Buffer or Producer/Consumer Queue
+- The situation occurs when we have one or more producer threads and one or more consumer threads.
+
+      P1                  C1
+      .       Queue       .
+      . ->  [||||||||] -> .
+      .         |         .
+      Pn        |         Cm
+                |
+       Shared data structure
+       
+      Extra requirement: The queue is bounded (fixed size). Why?
+        As an example, let's consider the UNIX pipe
+                  grep hello file | wc
+                     (producer)     (consumer)   
+                The pipe is a shared queue
+                
+        And so if we let the producer run for long, it'll create a large amount of data and fills memory with it (thats why we need the queue to be bounded - not to waste memory).
+        
+      We can't use locks, cause it'll prevent a producer from producing when the queue is full. We make use of condition variables.
+        
 
 
 
