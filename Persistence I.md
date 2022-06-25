@@ -133,8 +133,33 @@ A hard drive is a persistent storage device (nonvolatile in contrast with DRAM)
         For 1KB of I/O (small I/Os) the over head time still holds 10ms, but the time taken to transfer is approximately 0.
         1KB/10ms(1000ms/sec) = 100KB/s = 0.1MB/s
         
-        
+**Side note**: Hard drives have DRAMs in their internals, which serves as a cache; when writing to it we actually write on the DRAM and then gets transferred to the surface.
 
+#### I/O Scheduling
+Given a set of requests: we have to decide which to do first?
+
+- Goals:
+  - Performance
+  - Fairness
+
+Each "Job" is an I/O request (read/write). We might be able to know how long it would take (given that the disk arm is on a certain track, at a certain rotational position); job length. So the desire is to do Shortest Job First, in which we need to know the length of the job (and here its kindof possible).
+
+At the OS level: the hard drive internals are hidden from it but inside the drive we have more knowledge.
+
+- We can fit many sectors on the outer track and fewer sectors on the inner track. It can make a big difference from a performance standpoint; its running at a fixed rate and on the outer track more sectors are going under the head.
+- **Zoning**: divide the disk into zones of tracks next to eachother each of which have the same number of sectors per track.
+
+
+##### **Scheduling Algorithms**:
+- **FIFO**: going to go as the request streams; not good
+- **Shortest Seek Time First (SSTF)**: sorts the requests by their tracks and does it in that order; easy to implement (track based ordering). Problems: starvation, doesn't account for rotation
+- To solve for rotation problem - **Shortest Access Time First (SATF)**: accounts for seeking and rotation; hard to build (complex)
+- To solve for starvation problem - make it switch tracks approach, **"SCAN" (elevator) algorithm**; always going in one order (and not going back) we can guarantee not starving a request. 
+- To solve for starvation problem - **Bounded Queue**; always finish first set of request before moving on to next set of request, lowers performance a little. The smaller the window (subset of request) more of behaves like FIFO, the larger the window size we might starve.
+  
+  
+- Is Shortest Access Time First scheduling the best approach (optimal)?
+  - Its greedly deciding and could go wrong. To figure out a greedy-optimal way its complex, cause there are a lot of paths to compute
 
 
 
