@@ -187,6 +187,28 @@ The file system API and what it does to interact with the disk?
      Most files are small; thus results in an imbalanced tree structure of the file system (direct pointers to the data blocks may be enough for small-sized files then for larger files we then allocate indirect pointers for additional direct pointers to data blocks)
 
 
+#### Caching and Write Buffering
+- To make file systems fast we use **memory**
+- It's important on reads: 
+  - Opening a long nested file requires many reads of directory blocks, but if we cache inodes, directory data(meta data) in memory; meaning opening the file again (re-opening) is fast
+  - For large files, in inodes it would have direct pointers (that point to data blocks) and additional indirect blocks. And so in doing reads we might have to read double indirect blocks, indirect blocks and data; and so caching the "double indirect blocks, indirect blocks" will make it faster (even for newer data since we've already read the indirect blocks). Cache data too (for subsequent reading of the same data).
+- Writing:
+  - open() -> write() .... write() -> close()
+  - At this point, the FS has done no I/O to the disk instead its buffering data in memory. Then later in the background, the OS finally writes out this data to the disk. Why is buffering these writes useful? 
+    - Its faster
+    - Subsequent reads might make use of it
+    - Aggregate many small writes to block-sized writes (minimize system call overheads; sometimes known as "batching effect")
+    - Over-write the same block repeatedly (reduces the amount of I/O; wrote the final version)
+    - Disk Scheduling (performs better with more writes)
+    - If file is deleted, we don't have to write to disk at all.
+  - Why is write buffering not good?
+    - Crash means data loss
+  - If persistence (immediate writes) matter for a particular system:
+    - You call fsync(): open()->write()....write()->fsync() => which forces data to disk(slow but safe)
+- File System Cache is shared across all processes (reading and writing the same data by different processes is reffering to the same data block)
+- In MACs, fsync actually doesn't write it to the disk immediately it writes it to the drive DRAM which is allocated alongside the disk then writes it on the persistent storage(disk) later on.
+
+ 
 
 
     
