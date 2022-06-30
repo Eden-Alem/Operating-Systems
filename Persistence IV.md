@@ -74,15 +74,15 @@
             - Check: is the FS consistent? Usually done before usage (mounting; making it accessible) of the FS. Named the File System Check (FSCK); used for many years but disks got large (RAID too) and to check them took hours (too slow).
             - Journaling: (based from ideas in databases called write-ahead logging). Does the eager approach (does some work with every update and recovery after crash, its fast)
             
-          [        |     |     |     |          |                  ]
-           Journal
+         1. write note to log/journal about pending update
+         2. write the update                               (in memory)
+        ______________________________________________________________    
+          [        |     |     |     |         |              ]
+           Journal                                          (in disk)
         (write-ahead
             log)
              |
          added another on disk structure that the FS will manage
-         
-         1. write note to log/journal about pending update
-         2. write the update
          
          Faster recovery; much smaller space to look over and we know what to do (looking at the pending updates)
          
