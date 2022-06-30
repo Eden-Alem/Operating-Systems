@@ -113,12 +113,61 @@
 
          Side Note: What the disk guarantees is the writing of a sector atomically but larger writes may be partially complete.
          
-         
-         
-         
-             
-           
-            
 
+#### Locality
+- Important for hard disks (since we know long seeks are costly), on SSDs locality is important too.
+- Means putting files/etc. on disk in such a way that once they're accessed together they should be near one another (space locality). Dates back to one of the earliest FSs named the **Fast File System(FFS)** in UNIX systems. And the problem here was performance. The original UNIX FS was facing problems with slow (degraded) performance (on the old FS before the FFS). And the problem was based on fragmentation problem; data blocks and inodes that pointed these blocks got scattered through the disk over time. So, the goal of FFS in regards to this problem will be further illustrated below:
 
+      We'll start with this on-disk structure that we will change
+      
+      The old FS had the structue below:
+      [ S | IB | DB |   inodes   |     Data blocks     ] 
+      
+      Instead the new FFS format is as follows (G - Group):
+      [ G0 | G1 | G2 | ........ | Gn-1 ]
+      
+      Each group is a small version of the previous entire format (includes a piece of every region)
+      
+      Goal: Put related stuff into the same group and unrelated stuffs to different groups. What do we mean by related here in the FS?
+        -> Data for the same file
+        -> Files in same directory
+        -> inodes and the data it refers to
+        When making a new directory:
+          - pick some group for it
+          - place all files in this directory (inodes and data) into the group
+        How do we decide to pick the group for a certain directory?
+          - free space (data blocks), inodes (balancing the load across groups)
+        
+        Exception to FFS when it comes to large files:
+          - Could fill up a group (disrupting our locality) so, what FFS did was:
+            - to only place the first N blocks of a file to a desired group
+            - and place each next chunks of a file in other groups
+            This has a performance problems:
+              - We need to be wary of how big the chunks (N blocks) are. How big should it be?
+                - We first need to know:
+                  - cost of seek (we seek across each chunk for example if we were to read the large file; we need to make sure that the seek we're making each time we make towards the next chunk is tolerable) (our desirable output: is to spend most of the time in transfer and less time like 10% on seek)
+                  - transfer speed (would help us determine how big a chunk should be to spend more time transferring)
+                  
+                  For example: transfer - 100 MB/s; seek(avg) - 10ms
+                         transfer    seek
+                      [            |  10ms  ]
+                      ------------- 
+                        like 100ms would be nice to spend transferring (for simplicity through our calculation) 
+                        
+                                        (100ms)
+                    xMB * (1sec/100MB) = 0.1sec
+                    x = 10MB of chunk
+                    
+      FFS:
+        - the first time: same API with new implementation
+        - symbolic link
+        - long file names
+        - other performance optimizations (but not as relevant today since disks have gotten smarter)
+
+      FFS as a whole just treated a disk like a disk: to obtain a peak and sustained (not degrading) performance 
+                  
+                 
+                   
+      
+    
 
