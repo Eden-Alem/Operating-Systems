@@ -82,9 +82,37 @@
         (write-ahead
             log)
              |
-         added another on disk structure that the FS will manage
+         added another on disk structure that the FS will manage; its persistent (we make sure to write the note on the log on disk).
          
          Faster recovery; much smaller space to look over and we know what to do (looking at the pending updates)
+         
+         Example to better illustrate the details of journaling (appending to an existing file):
+         
+         (info about the update; like locations)
+         Transaction
+         begin         [DB]      [I]       [D]              (in memory)
+         _|_____________________________________________________________
+         [\|DB I D|\|   |   |     | [DB] |    [I]    |     |D|          ]   
+          Journal  |                                         (on disk)
+              Transaction
+                  end
+                  
+         The problem we faced with the FS when it comes to crashes is that we wanted that atomic behavior of updating (writing everything to disk) at once but having some of it to update and causing those inconsistencies was undesirable (The mindset we have with FS is ALL OR NOTHING - Atomicity). Journaling makes sure of this; it pushes all the updates to the log and makes sure we get them all done or not. We have steps for journaling:
+         1, We write all updates out to the journal PERSISTENTLY on disk.
+         2, We have the updates (writes) in place (to the DB, I, D)
+         
+         CRASHES:
+            - During step 2 (after step 1): we replay the transactions in the journal (recover from log).
+            - During step 1 (issue all writes to journal): the recovery process might copy (replay) garbage later on to the FS (corrupt super block; not be able to mount).
+              - To solve the above problem (linux ext3; older version of the journaling FS) was took step 1 and broke it into two parts:
+                  a) Write the transaction begin block and the contents but not the end block to the journal then wait until these are complete then
+                  b) Write the transaction end block (transaction committed at this point) then we wait till its complete
+                  Then, we go ahead and do step2 (in place updates)
+                  
+                The above two parts (a and b) are slow cause we wait in the middle till operations are done and so in 2005 a group of researchers suggested that we make use of a checksum on the transaction begin and end block (calculation over the contents of the updates and allow the FS to see if the checksum matches when it comes back to recovery; was known as a transaction checksum which got implemented by linux ext4); was possible to issue all those writes and we could know its validity through the checksum.
+
+         Side Note: What the disk guarantees is the writing of a sector atomically but larger writes may be partially complete.
+         
          
          
          
