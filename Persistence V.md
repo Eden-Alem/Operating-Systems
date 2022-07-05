@@ -135,13 +135,40 @@
                 |
             interface; where we can read/write to it
                 |
-        [ [CPU]   [mem.]     ] => Flash Translation Layer(FTL)
+        [ [CPU]    [mem.]    ] => Flash Translation Layer(FTL)
         [ [F0] ------------  ]    - takes reads/writes to interface
-        [  --------- [Fn-1]  ]    - map them into low-level flash ops
+        [ ---------- [Fn-1]  ]    - map them into low-level flash ops
                          |          (reads, erases, programs)
                    (flash chips)  
                    
-         Bad way to build FTL: "direct mapped "
+         Bad way to build FTL: "direct mapped" - would map logical blocks to physical pages(Logical-0 <=> Page-0)
+            - A read in this approach: just reads at the given address (easy)
+            - Writes: lets consider writing address 2(updatig the contents of page 2):
+                                    |
+                [ P0 | P1 | P2 | P3 |        |         |          ] 
+                 ------------------ |-------- --------- ----------
+                      Block 0         Block1    Block2    Block3
+                      
+                - Read P0, P1, P3 (Put is somewhere but where?); could read them in memory (problem of crashing)
+                - Erase Block-0
+                - Program P0, P1, P2', P3
+          In-terms of performance: 
+            - Its slow (cause erases take ms)
+            - Wear out (usage pattern controled) 
+
+          So then what to do?
+          - Design a better FTL: with logging (copy on write)
+            - In SSDs, there is a memory where it includes a "map" that tells the last version for each block. So to do a logical write (4kB in size)-log style writing (start from left and filling it in going to right:
+                  - Erase blocks once
+                  - Program pages one at a time
+                  - record in memory (in the FTL); logical block -> physical page mapping 
+
+                                    |
+                [ P0 | P1 | P2 | P3 |        |         |          ] 
+                 ------------------ |-------- --------- ----------
+                      Block 0         Block1    Block2    Block3                
+          
+         
                  
     
     
