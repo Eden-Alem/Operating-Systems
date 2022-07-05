@@ -86,9 +86,62 @@
         Performance of LFS is determined:
           - by the sum of foreground and background I/O traffic
                   
-               
-               
+        Fragmentation is another possible problem with LFS(as we overwrite the parts of a data blocks over and over agin we'll end up with parts of the data blocks in pieces all over the disk), how to handle it?   
+        - With a fragmented file, we just read it and write it out in entirety (creates a new version of the file that is compacted).
+        
+### Solid-State Devices 
+- are computer chips: serves as persistent (non-volatile) memory (can survive power loss)
+- Flash-based SSDs: developed in the early 1980s in Japan.
+
+##### Interface
+- same as a hard-drive:
+  - bunch of blocks (sectors)
+  - we can read/write them
+  
+##### Internals
+- SSD has many chips
+- A chip is organized as follows:
+
+        pages(2KB/4KB)
+          |
+        [ - - - |      |      |      ]     
+        ________
+            |
+        block(sometimes named "erase" block)
+        (256KB)
+        
+        
+        When storing a bit in flash:
+        - 'trapping charge' => inside the SSD, to differentiate whether the bit being stored is a 0 or 1.
+        
+        
+        The operations to a flash: a little different than just read/write
+        - read a page => gives data
+        - update(2 steps):
+              - erase (entire block): makes that block (pages inside of it) writeable (valid)
+              - program a page (within block): set its contents. Once a page is programmed, to overwrite it we have to erase an entire block again.
               
+         
+        Performance characteristics:
+        - reads: fast (10s of microseconds where in hard drives we're talking in milliseconds)
+        - erase (block): slow (a few ms)
+        - program (page):  somehow fast (100 microseconds)
+        
+        Reliability characteristics:
+        - wear out(technology problem): erase/program a block too many times, it becomes unusable(adds maintainance cost).
+        
+        Design: SSD
+        
+                |
+            interface; where we can read/write to it
+                |
+        [ [CPU]   [mem.]     ] => Flash Translation Layer(FTL)
+        [ [F0] ------------  ]    - takes reads/writes to interface
+        [  --------- [Fn-1]  ]    - map them into low-level flash ops
+                         |          (reads, erases, programs)
+                   (flash chips)  
+                   
+         Bad way to build FTL: "direct mapped "
                  
     
     
