@@ -152,8 +152,8 @@
                 - Read P0, P1, P3 (Put is somewhere but where?); could read them in memory (problem of crashing)
                 - Erase Block-0
                 - Program P0, P1, P2', P3
-          In-terms of performance: 
-            - Its slow (cause erases take ms)
+                
+            - Its slow regarding performance (cause erases take ms)
             - Wear out (usage pattern controled) 
 
           So then what to do?
@@ -166,7 +166,18 @@
                                     |
                 [ P0 | P1 | P2 | P3 |        |         |          ] 
                  ------------------ |-------- --------- ----------
-                      Block 0         Block1    Block2    Block3                
+                      Block 0         Block1    Block2    Block3   
+                      
+                Problems:
+                  - Garbage
+                  - How to recover the FTL translations after a crash
+                  - Wear leveling (does log-structuring help with that? Somehow does, since it spreads writes across but if the data written to a block is never re-written to it again we wouldn't get the leveling of wearouts). Solution: Perioidcally read through the device, read and write it somewhere else and then erase that block making sure the erase load is even (in the FTL).
+                  - How big is the FTL? (let's say with 1TB of SSD per page mappings with page: 1KB how many mappings do we have of logical blocks? 1TB/1KB ~ Billions of mappings with each let's say 4 bytes (too much memory space)). Solutions: better data structure, only keep "active(live)" pieces of the map in memory (caching, swapping), block mappings (refer to entire blocks not pages)  
+                  
+                  Why does locality matter in an SSD? 
+                      - (on reads): number of mappings is reduced
+                      
+**Side note**: In-terms of performance doing large contiguous I/Os at once (have locality) performs better whether in SSDs or HDDs rather than random (small) I/Os
           
          
                  
